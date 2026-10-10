@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#7f2446">
+  <title>MAA AI Video Studio</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand-mark">✦</div>
+  <div><div class="eyebrow">YOUR CREATIVE WORKSPACE</div><h1>MAA AI Video Studio</h1></div>
+  <span class="pill">BETA</span>
+</header>
+<main>
+  <section class="intro">
+    <p class="eyebrow">MAKE YOUR NEXT PROMO</p>
+    <h2>Turn product photos into a video.</h2>
+    <p>Build a vertical promotional video with your brand name, products, script and subtitles. This free starter runs in your browser.</p>
+  </section>
+
+  <div class="layout">
+    <section class="panel controls">
+      <h3>1. Brand details</h3>
+      <label>Business name<input id="brand" value="MAA ASHAPURA NOVELTIES" maxlength="70"></label>
+      <label>Website<input id="website" value="https://maa-glam.pages.dev/" inputmode="url"></label>
+      <label>Shop address<input id="address" value="Gandhi Bazar, Main Road, Near Basaweshwara Temple, Shivamogga" maxlength="140"></label>
+      <label>Presenter name<input id="presenter" value="Aashvi" maxlength="30"></label>
+
+      <h3>2. Upload your media</h3>
+      <label class="upload">Product / shop photos
+        <input id="photos" type="file" accept="image/*" multiple>
+        <span class="hint">Choose several photos. Use your real shop and products.</span>
+      </label>
+      <label class="upload">Optional presenter photo
+        <input id="avatar" type="file" accept="image/*">
+        <span class="hint">Use an image you have permission to use.</span>
+      </label>
+
+      <h3>3. Script and format</h3>
+      <label>Spoken script<textarea id="script" rows="6">Namaskara, Shivamogga! Welcome to MAA ASHAPURA NOVELTIES! Beautiful jewellery, stylish bangles, cosmetics, handbags and lovely gifts. Visit us at Gandhi Bazar Main Road, near Basaweshwara Temple, Shivamogga. Explore our collection at maa-glam.pages.dev. MAA ASHAPURA NOVELTIES — Discover Your Style!</textarea></label>
+      <label>Video length
+        <select id="duration"><option value="15">15 seconds</option><option value="30" selected>30 seconds</option><option value="60">60 seconds</option></select>
+      </label>
+      <label>Subtitle language
+        <select id="subtitle"><option>English</option><option>Kannada</option><option>Kannada + English</option></select>
+      </label>
+      <div class="actions">
+        <button id="previewBtn" class="secondary">Update preview</button>
+        <button id="exportBtn">Export video</button>
+      </div>
+      <p id="status" role="status" aria-live="polite">Ready. Add your product photos to begin.</p>
+    </section>
+
+    <section class="preview-wrap">
+      <div class="preview-head"><div><span class="live-dot"></span> VIDEO PREVIEW</div><span>9:16 vertical</span></div>
+      <div class="stage-shell">
+        <canvas id="stage" width="720" height="1280" aria-label="Video preview canvas"></canvas>
+        <div id="empty" class="empty"><div class="spark">✦</div><strong>Your video preview</strong><span>Add photos, then tap Update preview.</span></div>
+      </div>
+      <div class="preview-foot">
+        <span>Blush • Cream • Burgundy</span>
+        <span id="photoCount">0 product photos</span>
+      </div>
+      <div class="note"><strong>Starter version:</strong> this creates a slideshow-style promo video with title cards and subtitles. It does not yet generate a realistic talking avatar or AI voice automatically.</div>
+    </section>
+  </div>
+  <section class="how">
+    <h3>How to use</h3>
+    <ol>
+      <li>Enter your brand details and upload product/shop photos.</li>
+      <li>Edit the script and choose 15, 30 or 60 seconds.</li>
+      <li>Tap <b>Update preview</b>, then <b>Export video</b>.</li>
+      <li>Share the exported file on Instagram, Facebook or WhatsApp.</li>
+    </ol>
+    <p>For public launch, add secure user accounts, cloud storage, abuse protection and a backend before allowing many businesses to use it.</p>
+  </section>
+</main>
+<footer>MAA AI Video Studio • Starter prototype • Your uploaded media stays in this browser session.</footer>
+<script src="app.js"></script>
+</body>
+</html>

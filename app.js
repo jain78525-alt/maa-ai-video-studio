@@ -131,44 +131,90 @@ $("avatar").addEventListener("change",async e=>{
 });
 $("previewBtn").addEventListener("click",updatePreview);
 
-$("exportBtn").addEventListener("click",async()=>{
-  if(!("captureStream" in canvas) || !window.MediaRecorder){
-    $("status").textContent="Video export is not supported by this browser. Try Chrome on a computer, or use the preview as a guide for an editor.";
+$("exportBtn").addEventListener("click", async () => {
+  const button = $("exportBtn");
+  const status = $("status");
+  if (!canvas.captureStream || !window.MediaRecorder) {
+    status.textContent = "Video export is not supported by this browser. Try another browser or use the preview with a video editor.";
     return;
   }
-  $("exportBtn").disabled=true;
-  $("status").textContent="Preparing video… keep this page open until export finishes.";
-  const seconds=Number($("duration").value);
-  const fps=24;
-  const stream=canvas.captureStream(fps);
-  let mime="video/webm;codecs=vp9";
-  if(!MediaRecorder.isTypeSupported(mime)) mime="video/webm";
+  if (button.disabled) return;
+  button.disabled = true;
+  const seconds = Number($("duration").value) || 15;
+  const fps = 12; // lower frame rate is friendlier to iPhone browsers
+  let stream;
   let recorder;
-  try{recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:3500000});}
-  catch(e){recorder=new MediaRecorder(stream);}
-  const chunks=[];
-  recorder.ondataavailable=e=>{if(e.data && e.data.size)chunks.push(e.data);};
-  recorder.onerror=()=>{
-    $("status").textContent="Export failed in this browser. Try a supported browser or export on a computer.";
-    $("exportBtn").disabled=false;
+  let rafId = null;
+  let stopped = false;
+  const chunks = [];
+  const startedAt = performance.now();
+  const finish = (message) => {
+    if (stopped) return;
+    stopped = true;
+    if (rafId !== null) cancelAnimationFrame(rafId);
+    try { if (recorder && recorder.state !== "inactive") recorder.stop(); } catch (_) {}
+    if (stream) stream.getTracks().forEach(track => track.stop());
+    button.disabled = false;
+    if (message) status.textContent = message;
   };
-  recorder.onstop=()=>{
-    const blob=new Blob(chunks,{type:recorder.mimeType||"video/webm"});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement("a");
-    a.href=url;a.download="maa-ai-promo.webm";document.body.appendChild(a);a.click();a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),60000);
-    stream.getTracks().forEach(t=>t.stop());
-    $("status").textContent="Video downloaded. This starter exports WebM; convert to MP4 if your social platform requires it.";
-    $("exportBtn").disabled=false;
-  };
-  let start=performance.now();
-  recorder.start(250);
-  function frame(now){
-    const p=Math.min(1,(now-start)/(seconds*1000));
-    drawFrame(p);
-    if(p<1) rafId=requestAnimationFrame(frame);
-    else recorder.stop();
+  try {
+    stream = canvas.captureStream(fps);
+    const preferred = ["video/webm;codecs=vp8", "video/webm"];
+    const mimeType = preferred.find(type => MediaRecorder.isTypeSupported(type));
+    recorder = mimeType
+      ? new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 1200000 })
+      : new MediaRecorder(stream);
+
+    recorder.ondataavailable = event => {
+      if (event.data && event.data.size > 0) chunks.push(event.data);
+    };
+    recorder.onerror = () => finish("Video export failed in this browser. Try again with 15 seconds and one photo.");
+    recorder.onstop = () => {
+      if (stopped && chunks.length === 0) return;
+      const blob = new Blob(chunks, { type: recorder.mimeType || "video/webm" });
+      if (!blob.size) {
+        status.textContent = "No video was created. Please try again with one photo and 15 seconds.";
+        button.disabled = false;
+        return;
+      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "maa-ai-promo.webm";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      status.textContent = "Video is ready. If Safari does not download automatically, check the Downloads folder in Files.";
+      button.disabled = false;
+    };
+
+    status.textContent = `Preparing video… 0% (keep this page open)`;
+    recorder.start(500);
+    const renderFrame = now => {
+      if (!recorder || recorder.state === "inactive") return;
+      const progress = Math.min(1, (now - startedAt) / (seconds * 1000));
+      drawFrame(progress);
+      status.textContent = `Preparing video… ${Math.round(progress * 100)}% (keep this page open)`;
+      if (progress < 1) {
+        rafId = requestAnimationFrame(renderFrame);
+      } else {
+        status.textContent = "Finishing video…";
+        setTimeout(() => {
+          try { if (recorder.state !== "inactive") recorder.stop(); } catch (_) {
+            finish("Video export failed. Please try again with 15 seconds and one photo.");
+          }
+        }, 600);
+      }
+    };
+    rafId = requestAnimationFrame(renderFrame);
+    // Prevent an endless spinner if Safari stops delivering animation frames.
+    setTimeout(() => {
+      if (!stopped && recorder && recorder.state !== "inactive") {
+        try { recorder.stop(); } catch (_) {}
+      }
+    }, (seconds + 15) * 1000);
+  } catch (error) {
+    finish("Could not start video export in this browser. Refresh the page and try 15 seconds with one photo.");
   }
-  rafId=requestAnimationFrame(frame);
 });
